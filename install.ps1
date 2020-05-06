@@ -44,7 +44,12 @@ $profiles = $settings.profiles | Where-Object { !$_.hidden }
 foreach ($profile in $profiles) {
     $guid = $profile.guid
     $name = $profile.name
-    $commandline = $profile.commandline
+    if ($profile.commandline -match '(?<commandline>.+\.exe)(\s+.*)?') {
+        $commandline = $Matches.commandline
+    } else {
+        $commandline = $null
+    }
+
     $command = "$executable -p ""$name"" -d ""%V."""
     $elevated1 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -d ""%V."" -p ""$name""\"" """
     $elevated2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""$name"" -d ""%V.""\"" """
@@ -54,17 +59,25 @@ foreach ($profile in $profiles) {
         $elevated = $elevated1
     }
 
-    if ($null -ne $commandline) {
+    if ($null -ne $profile.icon) {
+        $profileIcon = $profile.icon
+    } elseif ($null -ne $commandline) {
+        $profileIcon = $commandline
+    } else {
+        $profileIcon = $icon
+    }
+
+    if (($null -eq $profile.source) -or !($settings.disabledProfileSources -contains $profile.source)) {
         New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Force | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-        New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'Icon' -PropertyType String -Value $commandline | Out-Null
+        New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'Icon' -PropertyType String -Value $profileIcon | Out-Null
         
         New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid\command" -Force | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid\command" -Name '(Default)' -PropertyType String -Value $command | Out-Null
 
         New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid" -Force | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid" -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
-        New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid" -Name 'Icon' -PropertyType String -Value $commandline | Out-Null
+        New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid" -Name 'Icon' -PropertyType String -Value $profileIcon | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid" -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
         
         New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid\command" -Force | Out-Null
