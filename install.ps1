@@ -2,7 +2,7 @@
 
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (!(Test-Path $executable)) {
-    Write-Host "Windows Terminal not detected. Learn hwo to install it from https://github.com/microsoft/terminal"
+    Write-Host "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal"
     exit 1
 }
 
@@ -10,7 +10,7 @@ $powershell = "$executable -p ""Windows PowerShell"" -d ""%V."""
 $powershell2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -p ""Windows PowerShell"" -d ""%V.""\"" """
 
 $cmd = "$executable -p ""cmd"" -d ""%V."""
-$cmd2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -p ""cmd"" -d ""%V.""\"" """
+$cmd2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""cmd"" -d ""%V.""\"" """
 
 $icon = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.icon"
 
