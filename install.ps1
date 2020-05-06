@@ -7,7 +7,7 @@ if (!(Test-Path $executable)) {
 }
 
 $powershell = "$executable -p ""Windows PowerShell"" -d ""%V."""
-$powershell2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -p ""Windows PowerShell"" -d ""%V.""\"" """
+$powershell2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -d ""%V."" -p ""Windows PowerShell""\"" """
 
 $cmd = "$executable -p ""cmd"" -d ""%V."""
 $cmd2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""cmd"" -d ""%V.""\"" """
