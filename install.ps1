@@ -6,8 +6,12 @@ if (!(Test-Path $executable)) {
     exit 1
 }
 
-$command = "$executable -d ""%V."""
-$elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -d ""%V.""\"" """
+$powershell = "$executable -p ""Windows PowerShell"" -d ""%V."""
+$powershell2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -p ""Windows PowerShell"" -d ""%V.""\"" """
+
+$cmd = "$executable -p ""cmd"" -d ""%V."""
+$cmd2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -p ""cmd"" -d ""%V.""\"" """
+
 $icon = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.icon"
 
 Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon  # Going to update my own to just grab icon from the appx package
@@ -19,11 +23,18 @@ New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\M
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell' -Force | Out-Null
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open' -Force | Out-Null
-New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open' -Name 'MUIVerb' -PropertyType String -Value 'PowerShell' | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open' -Name 'MUIVerb' -PropertyType String -Value 'Windows PowerShell' | Out-Null
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open' -Name 'Icon' -PropertyType String -Value PowerShell.exe | Out-Null
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open\command' -Force | Out-Null
-New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open\command' -Name '(Default)' -PropertyType String -Value $command | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\open\command' -Name '(Default)' -PropertyType String -Value $powershell | Out-Null
+
+New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\cmd' -Force | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\cmd' -Name 'MUIVerb' -PropertyType String -Value 'Command Prompt' | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\cmd' -Name 'Icon' -PropertyType String -Value cmd.exe | Out-Null
+
+New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\cmd\command' -Force | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\cmd\command' -Name '(Default)' -PropertyType String -Value $cmd | Out-Null
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Force | Out-Null
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Name 'MUIVerb' -PropertyType String -Value 'Windows Terminal (Admin)' | Out-Null
@@ -31,11 +42,20 @@ New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\M
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'Directory\\ContextMenus\\MenuTerminalAdmin' | Out-Null
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open' -Force | Out-Null
-New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open' -Name 'MUIVerb' -PropertyType String -Value 'PowerShell' | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open' -Name 'MUIVerb' -PropertyType String -Value 'Windows PowerShell' | Out-Null
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open' -Name 'Icon' -PropertyType String -Value PowerShell.exe | Out-Null
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open' -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open\command' -Force | Out-Null
-New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open\command'-Name '(Default)' -PropertyType String -Value $elevated | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\open\command'-Name '(Default)' -PropertyType String -Value $powershell2 | Out-Null
+
+New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd' -Force | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd' -Name 'MUIVerb' -PropertyType String -Value 'Command Prompt' | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd' -Name 'Icon' -PropertyType String -Value cmd.exe | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd' -Name 'HasLUAShield' -PropertyType String -Value '' | Out-Null
+
+New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd\command' -Force | Out-Null
+New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\cmd\command'-Name '(Default)' -PropertyType String -Value $cmd2 | Out-Null
+
 
 Write-Host "Windows Terminal installed to Windows Explorer context menu."
