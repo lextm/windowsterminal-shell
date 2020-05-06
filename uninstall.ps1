@@ -1,8 +1,8 @@
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
-$icon = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.ico"
-if (Test-Path $icon) {
-  Remove-Item $icon
+$localCache = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\Cache"
+if (Test-Path $localCache) {
+  Remove-Item $localCache -Recurse
 }
 
 Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
