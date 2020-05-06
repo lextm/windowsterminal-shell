@@ -12,9 +12,18 @@ $powershell2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShe
 $cmd = "$executable -p ""cmd"" -d ""%V."""
 $cmd2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""cmd"" -d ""%V.""\"" """
 
-$icon = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.icon"
-
-Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon  # Going to update my own to just grab icon from the appx package
+$folder = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name.StartsWith("Microsoft.WindowsTerminal_") } | Select-Object -First 1)
+$actual = $folder.FullName + "\WindowsTerminal.exe"
+if (Test-Path $actual) {
+    # use app icon directly.
+    Write-Host "found actual executable" $actual
+    $icon = $actual
+} else {
+    # download from GitHub
+    Write-Host "didn't find actual executable" $actual
+    $icon = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.icon"
+    Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon
+}
 
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal' -Force | Out-Null
 New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal' -Name 'MUIVerb' -PropertyType String -Value 'Windows Terminal' | Out-Null
