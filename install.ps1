@@ -102,7 +102,7 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
 }
 
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
-if (!(Test-Path $executable)) {
+if (-not (Test-Path $executable)) {
     Write-Host "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal . Exit."
     exit 1
 }
@@ -136,8 +136,13 @@ New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\M
 New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell' -Force | Out-Null
 
 $settings = Get-Content "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" | Out-String | ConvertFrom-Json
-$profiles = $settings.profiles | Where-Object { !$_.hidden }
+if ($settings.profiles.PSObject.Properties.name -match "list") {
+    $list = $settings.profiles.list
+} else {
+    $list = $settings.profiles 
+}
 
+$profiles = $list | Where-Object { -not $_.hidden }
 foreach ($profile in $profiles) {
     $guid = $profile.guid
     $name = $profile.name
@@ -156,33 +161,44 @@ foreach ($profile in $profiles) {
         $elevated = $elevated1
     }
 
-    $profileIcon = $null;
+    $profileIcon = $null
+    $profilePng = $null
     if ($null -ne $profile.icon) {
         if (Test-Path $profile.icon) {
-            $profileIcon = $profile.icon  
-        } elseif ($pr.ofile.icon.StartsWith("ms-appdata:///")) {
-            Write-Host "Not implemented. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues"   
+            # use user setting
+            $profilePng = $profile.icon  
+        } elseif ($profile.icon.StartsWith("ms-appdata:///")) {
+            # resolve local or remote cache
+            Write-Host "Not implemented. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues"
+        } elseif ($profile.icon.StartsWith("ms-appx:///")) {
+            # resolve app cache
+            $profilePng = $profile.icon -replace "ms-appx://", $folder.FullName -replace "/", "\\"
         } else {
             Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues"
         }
-    } else {
-        $cachePng = "$folder\ProfileIcons\$guid.scale-200.png"
-        if (Test-Path $cachePng) {
-            if (!(Test-Path $localCache)) {
-                New-Item $localCache -ItemType Directory | Out-Null
-            }
+    }
 
-            $cacheIcon = "$localCache\$guid.ico"
-            ConvertTo-Icon -File $cachePng -OutputFile $cacheIcon
-            $profileIcon = $cacheIcon
+    if (($null -eq $profilePng) -or -not (Test-Path $profilePng)) {
+        # fallback to profile PNG
+        $profilePng = "$folder\ProfileIcons\$guid.scale-200.png"
+    }
+
+    if (Test-Path $profilePng) {
+        # found PNG, convert to ICO
+        if (-not (Test-Path $localCache)) {
+            New-Item $localCache -ItemType Directory | Out-Null
         }
+
+        $profileIcon = "$localCache\$guid.ico"
+        ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
     }
 
     if ($null -eq $profileIcon) {
+        # final fallback
         $profileIcon = $icon
     }
 
-    if (($null -eq $profile.source) -or !($settings.disabledProfileSources -contains $profile.source)) {
+    if (($null -eq $profile.source) -or -not ($settings.disabledProfileSources -contains $profile.source)) {
         New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Force | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
         New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'Icon' -PropertyType String -Value $profileIcon | Out-Null
