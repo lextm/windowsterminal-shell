@@ -113,7 +113,7 @@ function GetWindowsTerminalIcon(
     } else {
         # download from GitHub
         Write-Warning "Didn't find actual executable $actual so download icon from GitHub."
-        $icon = "$localCache\wt.icon"
+        $icon = "$localCache\wt.ico"
         Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon
     }
 
@@ -149,12 +149,15 @@ function GetProfileIcon (
         if (Test-Path $profile.icon) {
             # use user setting
             $profilePng = $profile.icon  
-        } elseif ($profile.icon -like "ms-appdata:///*") {
-            # resolve local or remote cache
-            Write-Host "Not implemented. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
+        } elseif ($profile.icon -like "ms-appdata:///Roaming/*") {
+            #resolve roaming cache
+            $profilePng = $profile.icon -replace "ms-appdata:///Roaming", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\RoamingState" -replace "/", "\"
+        } elseif ($profile.icon -like "ms-appdata:///Local/*") {
+            #resolve local cache
+            $profilePng = $profile.icon -replace "ms-appdata:///Local", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState" -replace "/", "\"
         } elseif ($profile.icon -like "ms-appx:///*") {
             # resolve app cache
-            $profilePng = $profile.icon -replace "ms-appx://", $folder -replace "/", "\\"
+            $profilePng = $profile.icon -replace "ms-appx://", $folder -replace "/", "\"
         } else {
             Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
         }
@@ -166,7 +169,7 @@ function GetProfileIcon (
     }
 
     if (Test-Path $profilePng) {
-        if ($profilePng -clike "*.png") {
+        if ($profilePng -like "*.png") {
             # found PNG, convert to ICO
             if (-not (Test-Path $localCache)) {
                 New-Item $localCache -ItemType Directory | Out-Null
@@ -174,7 +177,7 @@ function GetProfileIcon (
 
             $profileIcon = "$localCache\$guid.ico"
             ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
-        } elseif ($profilePng -clike "*.ico") {
+        } elseif ($profilePng -like "*.ico") {
             $profileIcon = $profilePng
         } else {
             Write-Warning "Icon format is not supported by this script" $profilePng ". Please use PNG or ICO format."
