@@ -5,7 +5,8 @@
 ## Install
 
 1. [Install Windows Terminal](https://github.com/microsoft/terminal).
-1. Run `install.ps1` to install context menu items to Windows Explorer.
+1. [Install PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7).
+1. Launch PowerShell 7 console as adminsitrator, and run `install.ps1` to install context menu items to Windows Explorer.
 
 ## Uninstall
 1. Run `uninstall.ps1` to uninstall context menu items from Windows Explorer.
