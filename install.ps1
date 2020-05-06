@@ -97,26 +97,26 @@ function ConvertTo-Icon
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
 if ($PSVersionTable.PSVersion.Major -lt 6) {
-    Write-Host "Must be executed in PowerShell 6 and above. Exit."
+    Write-Error "Must be executed in PowerShell 6 and above. Learn how to install it from https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7 . Exit."
     exit 1
 }
 
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (-not (Test-Path $executable)) {
-    Write-Host "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal . Exit."
+    Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal . Exit."
     exit 1
 }
 
-$folder = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name.StartsWith("Microsoft.WindowsTerminal_") } | Select-Object -First 1)
+$folder = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name -like "Microsoft.WindowsTerminal_*" } | Select-Object -First 1)
 $localCache = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\Cache"
 $actual = $folder.FullName + "\WindowsTerminal.exe"
 if (Test-Path $actual) {
     # use app icon directly.
-    Write-Host "found actual executable" $actual
+    Write-Host "Found actual executable" $actual
     $icon = $actual
 } else {
     # download from GitHub
-    Write-Host "didn't find actual executable" $actual
+    Write-Warning "Didn't find actual executable" $actual " so download from GitHub."
     $icon = "$localCache\wt.icon"
     Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon
 }
@@ -167,14 +167,14 @@ foreach ($profile in $profiles) {
         if (Test-Path $profile.icon) {
             # use user setting
             $profilePng = $profile.icon  
-        } elseif ($profile.icon.StartsWith("ms-appdata:///")) {
+        } elseif ($profile.icon -like "ms-appdata:///*") {
             # resolve local or remote cache
-            Write-Host "Not implemented. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues"
-        } elseif ($profile.icon.StartsWith("ms-appx:///")) {
+            Write-Host "Not implemented. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
+        } elseif ($profile.icon -like "ms-appx:///*") {
             # resolve app cache
             $profilePng = $profile.icon -replace "ms-appx://", $folder.FullName -replace "/", "\\"
         } else {
-            Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues"
+            Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
         }
     }
 
@@ -184,13 +184,21 @@ foreach ($profile in $profiles) {
     }
 
     if (Test-Path $profilePng) {
-        # found PNG, convert to ICO
-        if (-not (Test-Path $localCache)) {
-            New-Item $localCache -ItemType Directory | Out-Null
-        }
+        if ($profilePng -clike "*.png") {
+            # found PNG, convert to ICO
+            if (-not (Test-Path $localCache)) {
+                New-Item $localCache -ItemType Directory | Out-Null
+            }
 
-        $profileIcon = "$localCache\$guid.ico"
-        ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
+            $profileIcon = "$localCache\$guid.ico"
+            ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
+        } elseif ($profilePng -clike "*.ico") {
+            $profileIcon = $profilePng
+        } else {
+            Write-Warning "Icon format is not supported by this script" $profilePng ". Please use PNG or ICO format."
+        }
+    } else {
+        Write-Warning "Didn't find icon for profile" $name "."
     }
 
     if ($null -eq $profileIcon) {
