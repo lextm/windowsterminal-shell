@@ -215,7 +215,7 @@ function CreateProfileMenuItem(
     }
 
     $command = "$executable -p ""$name"" -d ""%V."""
-    $elevated1 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""-Command ""$executable"" -d ""%V."" -p ""$name""\"" """
+    $elevated1 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList """"-Command $executable -d `"%V.`" -p `"$name`""""""""
     $elevated2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""$name"" -d ""%V.""\"" """
     if ($commandline -eq "cmd.exe") {
         $elevated = $elevated2
@@ -282,5 +282,7 @@ if (-not (Test-Path $executable)) {
 }
 
 CreateMenuItems $executable
+
+
 
 Write-Host "Windows Terminal installed to Windows Explorer context menu."
