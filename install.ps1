@@ -22,7 +22,7 @@ function ConvertTo-Icon
     )
     
     begin {
-        Add-Type -AssemblyName System.Windows.Forms, System.Drawing   
+        Add-Type -AssemblyName System.Drawing   
     }
     
     process {
