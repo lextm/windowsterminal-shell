@@ -12,8 +12,12 @@ Now the menu items are added to Windows Explorer context menu.
 
 ![Menu items](menu.png)
 
+> The menu items are organized in the `default` layout. Other layouts such as `mini` and `flat` give different look and feel. To apply an aternative layout (like `mini`), simply run `install.ps1 mini`.
+
 ## Uninstall
 1. Run `uninstall.ps1` to uninstall context menu items from Windows Explorer.
+
+> To uninstall an alternative layout (like `mini`), run `uninstall.ps1 mini`.
 
 ## Notes
 The current release only supports Windows 10 machines (Windows Terminal restriction).
