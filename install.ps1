@@ -208,21 +208,8 @@ function CreateProfileMenuItem(
 {
     $guid = $profile.guid
     $name = $profile.name
-    if ($profile.commandline -match '(?<commandline>.+\.exe)(\s+.*)?') {
-        $commandline = $Matches.commandline
-    } else {
-        $commandline = $null
-    }
-
     $command = "$executable -p ""$name"" -d ""%V."""
-    $elevated1 = "PowerShell -WindowStyle Hidden -Command ""Start-Process PowerShell.exe -WindowStyle Hidden -Verb RunAs -ArgumentList """"-Command $executable -d `"%V.`" -p `"$name`""""""""
-    $elevated2 = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c ""$executable -p ""$name"" -d ""%V.""\"" """
-    if ($commandline -eq "cmd.exe") {
-        $elevated = $elevated2
-    } else {
-        $elevated = $elevated1
-    }
-
+    $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -p \""\""$name\""\"" -d \""\""%V.\""\""\"" """
     $profileIcon = GetProfileIcon $profile $folder $localCache $icon
     New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Force | Out-Null
     New-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid" -Name 'MUIVerb' -PropertyType String -Value $name | Out-Null
