@@ -276,6 +276,14 @@ function CreateMenuItems(
         New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'Directory\\ContextMenus\\MenuTerminalAdmin' | Out-Null
 
         New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell' -Force | Out-Null
+    } elseif ($layout -eq "mini") {
+        $command = "$executable -d ""%V."""
+        $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -d \""\""%V.\""\""\"" """
+        $rootKey = "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal"
+        $rootKeyElevated = "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin"
+        CreateMenuItem $rootKey "Windows Terminal here" $icon $command $false
+        CreateMenuItem $rootKeyElevated "Windows Terminal here as administrator" $icon $elevated $true   
+        return
     }
 
     $profiles = GetActiveProfiles
