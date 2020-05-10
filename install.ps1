@@ -337,7 +337,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (-not (Test-Path $executable)) {
-    Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal . Exit."
+    Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
     exit 1
 }
 
