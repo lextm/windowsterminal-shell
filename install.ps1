@@ -158,6 +158,8 @@ function GetProfileIcon (
         } elseif ($profile.icon -like "ms-appx:///*") {
             # resolve app cache
             $profilePng = $profile.icon -replace "ms-appx://", $folder -replace "/", "\"
+        } elseif ($profile.icon -like "*%*") {
+            $profilePng = [System.Environment]::ExpandEnvironmentVariables($profile.icon)
         } else {
             Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
         }
