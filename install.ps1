@@ -95,8 +95,31 @@ function ConvertTo-Icon
 }
 
 function GetProgramFilesFolder {
-    $folder = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name -like "Microsoft.WindowsTerminal_*" } | Select-Object -First 1)
-    return $folder.FullName
+    $versionFolders = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name -like "Microsoft.WindowsTerminal_*__*" })
+    $foundVersion = $null
+    $result = $null
+    foreach ($versionFolder in $versionFolders) {
+        if ($versionFolder.Name -match "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+") {
+            $version = [version]$Matches.0
+            Write-Host "Found Windows Terminal version" $version
+            if ($null -eq $foundVersion -or $version -gt $foundVersion) {
+                $foundVersion = $version
+                $result = $versionFolder.FullName
+            }
+        } else {
+            Write-Warning "Found Windows Terminal unsupported version in" $versionFolder 
+        }
+    }
+
+    if ($foundVersion -lt [version]"0.11") {
+        Write-Warning "The latest version found is less than 0.11, which is not tested. The install script might fail in certain way."
+    }
+
+    if ($null -eq $result) {
+        Write-Error "Failed to find Windows Terminal actual folder. The install script might fail in certain way."
+    }
+
+    return $result
 }
 
 function GetWindowsTerminalIcon(
@@ -173,10 +196,6 @@ function GetProfileIcon (
     if (Test-Path $profilePng) {
         if ($profilePng -like "*.png") {
             # found PNG, convert to ICO
-            if (-not (Test-Path $localCache)) {
-                New-Item $localCache -ItemType Directory | Out-Null
-            }
-
             $profileIcon = "$localCache\$guid.ico"
             ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
         } elseif ($profilePng -like "*.ico") {
@@ -261,6 +280,11 @@ function CreateMenuItems(
 {
     $folder = GetProgramFilesFolder
     $localCache = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\Cache"
+
+    if (-not (Test-Path $localCache)) {
+        New-Item $localCache -ItemType Directory | Out-Null
+    }
+
     $icon = GetWindowsTerminalIcon $folder $localCache
 
     if ($layout -eq "default") {
