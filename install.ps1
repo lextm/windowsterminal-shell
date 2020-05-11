@@ -144,7 +144,13 @@ function GetWindowsTerminalIcon(
 }
 
 function GetActiveProfiles {
-    $settings = Get-Content "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" | Out-String | ConvertFrom-Json
+    $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    if (-not (Test-Path $file)) {
+        Write-Error "Couldn't find profiles. Please run Windows Terminal at least once after installing it. Exit."
+        exit 1
+    }
+
+    $settings = Get-Content $file | Out-String | ConvertFrom-Json
     if ($settings.profiles.PSObject.Properties.name -match "list") {
         $list = $settings.profiles.list
     } else {
