@@ -168,9 +168,7 @@ function GetProfileIcon (
     [Parameter(Mandatory=$true)]
     [string]$localCache,
     [Parameter(Mandatory=$true)]
-    [string]$icon,
-    [Parameter(Mandatory=$true)]
-    [string]$source)
+    [string]$icon)
 {
     $guid = $profile.guid
     $name = $profile.name
@@ -199,8 +197,8 @@ function GetProfileIcon (
     if (($null -eq $profilePng) -or -not (Test-Path $profilePng)) {
         # fallback to profile PNG
         $profilePng = "$folder\ProfileIcons\$guid.scale-200.png"
-        if (-not (Test-Path($profilePng)) -and $null -eq $source) {
-            if ($source == "Windows.Terminal.Wsl") {
+        if (-not (Test-Path($profilePng))) {
+            if ($profile.source -eq "Windows.Terminal.Wsl") {
                 $profilePng = "$folder\ProfileIcons\{9acb9455-ca41-5af7-950f-6bca1bc9722f}.scale-200.png"
             }
         }
@@ -270,7 +268,7 @@ function CreateProfileMenuItems(
     $name = $profile.name
     $command = "$executable -p ""$name"" -d ""%V."""
     $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -p \""\""$name\""\"" -d \""\""%V.\""\""\"" """
-    $profileIcon = GetProfileIcon $profile $folder $localCache $icon $profile.source
+    $profileIcon = GetProfileIcon $profile $folder $localCache $icon
 
     if ($layout -eq "default") {
         $rootKey = "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid"
