@@ -94,20 +94,30 @@ function ConvertTo-Icon
     }
 }
 
-function GetProgramFilesFolder {
-    $versionFolders = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object { $_.Name -like "Microsoft.WindowsTerminal_*__*" })
+function GetProgramFilesFolder(
+    [Parameter(Mandatory=$true)]
+    [bool]$includePreview)
+{
+    $versionFolders = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object {
+            if ($includePreview) {
+                $_.Name -like "Microsoft.WindowsTerminal_*__*" -or
+                $_.Name -like "Microsoft.WindowsTerminalPreview_*__*"
+            } else {
+                $_.Name -like "Microsoft.WindowsTerminal_*__*"
+            }
+        })
     $foundVersion = $null
     $result = $null
     foreach ($versionFolder in $versionFolders) {
         if ($versionFolder.Name -match "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+") {
             $version = [version]$Matches.0
-            Write-Host "Found Windows Terminal version" $version
+            Write-Host "Found Windows Terminal version $version."
             if ($null -eq $foundVersion -or $version -gt $foundVersion) {
                 $foundVersion = $version
                 $result = $versionFolder.FullName
             }
         } else {
-            Write-Warning "Found Windows Terminal unsupported version in" $versionFolder 
+            Write-Warning "Found Windows Terminal unsupported version in $versionFolder."
         }
     }
 
@@ -131,7 +141,7 @@ function GetWindowsTerminalIcon(
     $actual = $folder + "\WindowsTerminal.exe"
     if (Test-Path $actual) {
         # use app icon directly.
-        Write-Host "Found actual executable" $actual
+        Write-Host "Found actual executable $actual."
         $icon = $actual
     } else {
         # download from GitHub
@@ -143,8 +153,15 @@ function GetWindowsTerminalIcon(
     return $icon
 }
 
-function GetActiveProfiles {
-    $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+function GetActiveProfiles(
+    [Parameter(Mandatory=$true)]
+    [bool]$isPreview)
+{
+    if ($isPreview) {
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
+    } else {
+        $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    }
     if (-not (Test-Path $file)) {
         Write-Error "Couldn't find profiles. Please run Windows Terminal at least once after installing it. Exit."
         exit 1
@@ -168,29 +185,40 @@ function GetProfileIcon (
     [Parameter(Mandatory=$true)]
     [string]$localCache,
     [Parameter(Mandatory=$true)]
-    [string]$icon)
+    [string]$defaultIcon,
+    [Parameter(Mandatory=$true)]
+    [bool]$isPreview)
 {
     $guid = $profile.guid
     $name = $profile.name
-    $profileIcon = $null
+    $result = $null
     $profilePng = $null
-    if ($null -ne $profile.icon) {
-        if (Test-Path $profile.icon) {
+    $icon = $profile.icon
+    if ($null -ne $icon) {
+        if (Test-Path $icon) {
             # use user setting
-            $profilePng = $profile.icon  
+            $profilePng = $icon  
         } elseif ($profile.icon -like "ms-appdata:///Roaming/*") {
             #resolve roaming cache
-            $profilePng = $profile.icon -replace "ms-appdata:///Roaming", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\RoamingState" -replace "/", "\"
+            if ($isPreview) {
+                $profilePng = $icon -replace "ms-appdata:///Roaming", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\RoamingState" -replace "/", "\"
+            } else {
+                $profilePng = $icon -replace "ms-appdata:///Roaming", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\RoamingState" -replace "/", "\"
+            }
         } elseif ($profile.icon -like "ms-appdata:///Local/*") {
             #resolve local cache
-            $profilePng = $profile.icon -replace "ms-appdata:///Local", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState" -replace "/", "\"
+            if ($isPreview) {
+                $profilePng = $icon -replace "ms-appdata:///Local", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState" -replace "/", "\"
+            } else {
+                $profilePng = $icon -replace "ms-appdata:///Local", "$Env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState" -replace "/", "\"
+            }
         } elseif ($profile.icon -like "ms-appx:///*") {
             # resolve app cache
-            $profilePng = $profile.icon -replace "ms-appx://", $folder -replace "/", "\"
+            $profilePng = $icon -replace "ms-appx://", $folder -replace "/", "\"
         } elseif ($profile.icon -like "*%*") {
-            $profilePng = [System.Environment]::ExpandEnvironmentVariables($profile.icon)
+            $profilePng = [System.Environment]::ExpandEnvironmentVariables($icon)
         } else {
-            Write-Host "Invalid profile icon found" $profile.icon ". Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
+            Write-Host "Invalid profile icon found $icon. Please report an issue at https://github.com/lextm/windowsterminal-shell/issues ."
         }
     }
 
@@ -207,23 +235,23 @@ function GetProfileIcon (
     if (Test-Path $profilePng) {        
         if ($profilePng -like "*.png") {
             # found PNG, convert to ICO
-            $profileIcon = "$localCache\$guid.ico"
-            ConvertTo-Icon -File $profilePng -OutputFile $profileIcon
+            $result = "$localCache\$guid.ico"
+            ConvertTo-Icon -File $profilePng -OutputFile $result
         } elseif ($profilePng -like "*.ico") {
-            $profileIcon = $profilePng
+            $result = $profilePng
         } else {
-            Write-Warning "Icon format is not supported by this script" $profilePng ". Please use PNG or ICO format."
+            Write-Warning "Icon format is not supported by this script $profilePng. Please use PNG or ICO format."
         }
     } else {
-        Write-Warning "Didn't find icon for profile $name ."
+        Write-Warning "Didn't find icon for profile $name."
     }
 
-    if ($null -eq $profileIcon) {
+    if ($null -eq $result) {
         # final fallback
-        $profileIcon = $icon
+        $result = $defaultIcon
     }
 
-    return $profileIcon
+    return $result
 }
 
 function CreateMenuItem(
@@ -262,13 +290,15 @@ function CreateProfileMenuItems(
     [Parameter(Mandatory=$true)]
     [string]$icon,
     [Parameter(Mandatory=$true)]
-    [string]$layout)
+    [string]$layout,
+    [Parameter(Mandatory=$true)]
+    [bool]$isPreview)
 {
     $guid = $profile.guid
     $name = $profile.name
     $command = "$executable -p ""$name"" -d ""%V."""
     $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -p \""\""$name\""\"" -d \""\""%V.\""\""\"" """
-    $profileIcon = GetProfileIcon $profile $folder $localCache $icon
+    $profileIcon = GetProfileIcon $profile $folder $localCache $icon $isPreview
 
     if ($layout -eq "default") {
         $rootKey = "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid"
@@ -287,9 +317,11 @@ function CreateMenuItems(
     [Parameter(Mandatory=$true)]
     [string]$executable,
     [Parameter(Mandatory=$true)]
-    [string]$layout)
+    [string]$layout,
+    [Parameter(Mandatory=$true)]
+    [bool]$includePreview)
 {
-    $folder = GetProgramFilesFolder
+    $folder = GetProgramFilesFolder $includePreview
     $localCache = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\Cache"
 
     if (-not (Test-Path $localCache)) {
@@ -333,9 +365,10 @@ function CreateMenuItems(
         return
     }
 
-    $profiles = GetActiveProfiles
+    $isPreview = $folder -like "*WindowsTerminalPreview*"
+    $profiles = GetActiveProfiles $isPreview
     foreach ($profile in $profiles) {
-        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout
+        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout $isPreview
     }
 }
 
@@ -352,14 +385,34 @@ if (-not (Test-Path $executable)) {
     exit 1
 }
 
-if ($args.Count -eq 1) {
+if ($args.Count -ge 1) {
     $layout = $args[0]
 } else {
     $layout = "default"
 }
 
-Write-Host "Use" $layout "layout."
+$includePreview = $false
+$layout = "default"
+foreach ($arg in $args) {
+    if ($arg -like "--*") {
+        #flag detected
+        if ($arg -eq "--prerelease") {
+            $includePreview = $true
+        } else {
+            Write-Warning "Unknown flag $arg. Ignore."
+        }
+    } else {
+        #layout
+        if ({"default", "mini", "flat"} -contains $arg) {
+            $layout = $arg
+        } else {
+            Write-Warning "Unknown layout $arg. Use default layout instead."
+        }
+    }
+}
 
-CreateMenuItems $executable $layout
+Write-Host "Use $layout layout."
+
+CreateMenuItems $executable $layout $includePreview
 
 Write-Host "Windows Terminal installed to Windows Explorer context menu."
