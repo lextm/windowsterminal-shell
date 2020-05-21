@@ -385,12 +385,6 @@ if (-not (Test-Path $executable)) {
     exit 1
 }
 
-if ($args.Count -ge 1) {
-    $layout = $args[0]
-} else {
-    $layout = "default"
-}
-
 $includePreview = $false
 $layout = "default"
 foreach ($arg in $args) {
@@ -398,12 +392,13 @@ foreach ($arg in $args) {
         #flag detected
         if ($arg -eq "--prerelease") {
             $includePreview = $true
+            Write-Host "Include preview release."
         } else {
             Write-Warning "Unknown flag $arg. Ignore."
         }
     } else {
         #layout
-        if ({"default", "mini", "flat"} -contains $arg) {
+        if (@("default", "mini", "flat") -contains $arg) {
             $layout = $arg
         } else {
             Write-Warning "Unknown layout $arg. Use default layout instead."
