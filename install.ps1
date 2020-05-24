@@ -1,3 +1,15 @@
+#Requires -RunAsAdministrator
+#Requires -Version 6
+
+[CmdletBinding()]
+param(
+    [Parameter(Position = 0)]
+    [ValidateSet('Default', 'Flat', 'Mini')]
+    [string] $Layout = 'Default',
+    [Parameter()]
+    [switch] $PreRelease
+)
+
 # https://gist.github.com/darkfall/1656050
 function ConvertTo-Icon
 {
@@ -300,12 +312,12 @@ function CreateProfileMenuItems(
     $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -p \""\""$name\""\"" -d \""\""%V.\""\""\"" """
     $profileIcon = GetProfileIcon $profile $folder $localCache $icon $isPreview
 
-    if ($layout -eq "default") {
+    if ($layout -eq "Default") {
         $rootKey = "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell\$guid"
         $rootKeyElevated = "Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid"
         CreateMenuItem $rootKey $name $profileIcon $command $false
         CreateMenuItem $rootKeyElevated $name $profileIcon $elevated $true
-    } elseif ($layout -eq "flat") {
+    } elseif ($layout -eq "Flat") {
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalAdmin_$guid" "$name here as administrator" $profileIcon $elevated $true   
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false
@@ -330,7 +342,7 @@ function CreateMenuItems(
 
     $icon = GetWindowsTerminalIcon $folder $localCache
 
-    if ($layout -eq "default") {
+    if ($layout -eq "Default") {
         # defaut layout creates two menus
         New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal' -Force | Out-Null
         New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal' -Name 'MUIVerb' -PropertyType String -Value 'Windows Terminal here' | Out-Null
@@ -355,7 +367,7 @@ function CreateMenuItems(
         New-ItemProperty -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Name 'ExtendedSubCommandsKey' -PropertyType String -Value 'Directory\\ContextMenus\\MenuTerminalAdmin' | Out-Null
 
         New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell' -Force | Out-Null
-    } elseif ($layout -eq "mini") {
+    } elseif ($layout -eq "Mini") {
         $command = "$executable -d ""%V."""
         $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -d \""\""%V.\""\""\"" """
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalMini" "Windows Terminal here" $icon $command $false
@@ -374,40 +386,14 @@ function CreateMenuItems(
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
-if ($PSVersionTable.PSVersion.Major -lt 7) {
-    Write-Error "Must be executed in PowerShell 7 and above. Learn how to install it from https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7 . Exit."
-    exit 1
-}
-
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (-not (Test-Path $executable)) {
     Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
     exit 1
 }
 
-$includePreview = $false
-$layout = "default"
-foreach ($arg in $args) {
-    if ($arg -like "--*") {
-        #flag detected
-        if ($arg -eq "--prerelease") {
-            $includePreview = $true
-            Write-Host "Include preview release."
-        } else {
-            Write-Warning "Unknown flag $arg. Ignore."
-        }
-    } else {
-        #layout
-        if (@("default", "mini", "flat") -contains $arg) {
-            $layout = $arg
-        } else {
-            Write-Warning "Unknown layout $arg. Use default layout instead."
-        }
-    }
-}
+Write-Host "Use $Layout layout."
 
-Write-Host "Use $layout layout."
-
-CreateMenuItems $executable $layout $includePreview
+CreateMenuItems $executable $Layout $PreRelease
 
 Write-Host "Windows Terminal installed to Windows Explorer context menu."
