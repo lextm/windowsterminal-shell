@@ -8,6 +8,10 @@
 1. [Install PowerShell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7).
 1. Launch PowerShell 7 console as administrator, and run `install.ps1` to install context menu items to Windows Explorer.
 
+   > Quickest way to run the latest script from GitHub at an elevated PowerShell 7 console is
+   
+   > `Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/lextm/windowsterminal-shell/master/install.ps1'))`
+
 Now the menu items are added to Windows Explorer context menu.
 
 ![default layout](default.png)
