@@ -10,6 +10,27 @@ param(
     [switch] $PreRelease
 )
 
+function Generate-HelperScript(
+        # The cache folder
+        [Parameter(Mandatory=$true)]
+        [string]$cache)
+{
+    $content = 
+    "Set shell = WScript.CreateObject(`"Shell.Application`")
+     executable = WSCript.Arguments(0)
+     folder = WScript.Arguments(1)
+     If Wscript.Arguments.Count > 2 Then
+         profile = WScript.Arguments(2)
+         ' 0 at the end means to run this command silently
+         shell.ShellExecute `"powershell`", `"Start-Process \`"`"`" & executable & `"\`"`" -ArgumentList \`"`"-p \`"`"\`"`"`" & profile & `"\`"`"\`"`" -d \`"`"\`"`"`" & folder & `"\`"`"\`"`" \`"`" `", `"`", `"runas`", 0
+     Else
+         ' 0 at the end means to run this command silently
+         shell.ShellExecute `"powershell`", `"Start-Process \`"`"`" & executable & `"\`"`" -ArgumentList \`"`"-d \`"`"\`"`"`" & folder & `"\`"`"\`"`" \`"`" `", `"`", `"runas`", 0
+     End If
+    "
+    Set-Content -Path "$cache/helper.vbs" -Value $content
+}
+
 # https://gist.github.com/darkfall/1656050
 function ConvertTo-Icon
 {
@@ -308,8 +329,8 @@ function CreateProfileMenuItems(
 {
     $guid = $profile.guid
     $name = $profile.name
-    $command = "$executable -p ""$name"" -d ""%V."""
-    $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -p \""\""$name\""\"" -d \""\""%V.\""\""\"" """
+    $command = """$executable"" -p ""$name"" -d ""%V."""
+    $elevated = "wscript.exe ""$localCache/helper.vbs"" ""$executable"" ""%V."" ""$name"""
     $profileIcon = GetProfileIcon $profile $folder $localCache $icon $isPreview
 
     if ($layout -eq "Default") {
@@ -340,6 +361,7 @@ function CreateMenuItems(
         New-Item $localCache -ItemType Directory | Out-Null
     }
 
+    Generate-HelperScript $localCache
     $icon = GetWindowsTerminalIcon $folder $localCache
 
     if ($layout -eq "Default") {
@@ -368,8 +390,8 @@ function CreateMenuItems(
 
         New-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell' -Force | Out-Null
     } elseif ($layout -eq "Mini") {
-        $command = "$executable -d ""%V."""
-        $elevated = "PowerShell -WindowStyle Hidden -Command ""Start-Process cmd.exe -WindowStyle Hidden -Verb RunAs -ArgumentList \""/c $executable -d \""\""%V.\""\""\"" """
+        $command = """$executable"" -d ""%V."""
+        $elevated = "wscript.exe ""$localCache/helper.vbs"" ""$executable"" ""%V."""
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalMini" "Windows Terminal here" $icon $command $false
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalAdminMini" "Windows Terminal here as administrator" $icon $elevated $true   
         CreateMenuItem "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalMini" "Windows Terminal here" $icon $command $false
