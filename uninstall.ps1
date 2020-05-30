@@ -20,31 +20,31 @@ if (Test-Path $localCache) {
 Write-Host "Use" $layout "layout."
 
 if ($layout -eq "Default") {
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminal\shell' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\ContextMenus\MenuTerminalAdmin\shell' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminalAdmin\shell' -Recurse -ErrorAction Ignore | Out-Null
 } elseif ($layout -eq "Flat") {
-    $rootKey = 'HKEY_CLASSES_ROOT\Directory\shell'
+    $rootKey = 'HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell'
     foreach ($key in Get-ChildItem -Path "Registry::$rootKey") {
        if (($key.Name -like "$rootKey\MenuTerminal_*") -or ($key.Name -like "$rootKey\MenuTerminalAdmin_*")) {
           Remove-Item "Registry::$key" -Recurse -ErrorAction Ignore | Out-Null
        }
     }
 
-    $rootKey = 'HKEY_CLASSES_ROOT\Directory\Background\shell'
+    $rootKey = 'HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell'
     foreach ($key in Get-ChildItem -Path "Registry::$rootKey") {
        if (($key.Name -like "$rootKey\MenuTerminal_*") -or ($key.Name -like "$rootKey\MenuTerminalAdmin_*")) {
           Remove-Item "Registry::$key" -Recurse -ErrorAction Ignore | Out-Null
        }
     }
 } elseif ($layout -eq "Mini") {
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
 }
 
 Write-Host "Windows Terminal uninstalled from Windows Explorer context menu."
