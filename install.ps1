@@ -31,6 +31,26 @@ function Generate-HelperScript(
     Set-Content -Path "$cache/helper.vbs" -Value $content
 }
 
+# https://github.com/Duffney/PowerShell/blob/master/FileSystems/Get-Icon.ps1
+
+Function Get-Icon {
+
+    [CmdletBinding()]
+    
+    Param ( 
+        [Parameter(Mandatory=$True, Position=1, HelpMessage="Enter the location of the .EXE file")]
+        [string]$File,
+
+        # If provided, will output the icon to a location
+        [Parameter(Position=1, ValueFromPipelineByPropertyName=$true)]
+        [string]$OutputFile
+    )
+    
+    [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing')  | Out-Null
+    
+    [System.Drawing.Icon]::ExtractAssociatedIcon($File).ToBitmap().Save($OutputFile)
+}
+
 # https://gist.github.com/darkfall/1656050
 function ConvertTo-Icon
 {
@@ -45,7 +65,7 @@ function ConvertTo-Icon
     [CmdletBinding()]
     param(
     # The file
-    [Parameter(Mandatory=$true, Position=0,ValueFromPipelineByPropertyName=$true)]
+    [Parameter(Mandatory=$true, Position=0, ValueFromPipelineByPropertyName=$true)]
     [Alias('Fullname')]
     [string]$File,
    
@@ -171,15 +191,17 @@ function GetWindowsTerminalIcon(
     [Parameter(Mandatory=$true)]
     [string]$localCache)
 {
+    $icon = "$localCache\wt.ico"
     $actual = $folder + "\WindowsTerminal.exe"
     if (Test-Path $actual) {
         # use app icon directly.
         Write-Host "Found actual executable $actual."
-        $icon = $actual
+        $temp = "$localCache\wt.png"
+        Get-Icon -File $actual -OutputFile $temp
+        ConvertTo-Icon -File $temp -OutputFile $icon
     } else {
         # download from GitHub
         Write-Warning "Didn't find actual executable $actual so download icon from GitHub."
-        $icon = "$localCache\wt.ico"
         Invoke-WebRequest -UseBasicParsing "https://raw.githubusercontent.com/microsoft/terminal/master/res/terminal.ico" -OutFile $icon
     }
 
