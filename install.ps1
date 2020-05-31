@@ -408,6 +408,11 @@ function CreateMenuItems(
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
+if ($PSVersionTable.PSVersion.Major -lt 6) {
+    Write-Error "Must be executed in PowerShell 6 and above. Learn how to install it from https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7 . Exit."
+    exit 1
+}
+
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (-not (Test-Path $executable)) {
     Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
