@@ -430,6 +430,12 @@ function CreateMenuItems(
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
+if ((Test-Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal") -and
+    -not (Test-Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal")) {
+    Write-Error "Please execute uninstall.old.ps1 to remove previous installation."
+    exit 1
+}
+
 if ($PSVersionTable.PSVersion.Major -lt 6) {
     Write-Error "Must be executed in PowerShell 6 and above. Learn how to install it from https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7 . Exit."
     exit 1
