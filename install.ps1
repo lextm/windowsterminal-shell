@@ -89,6 +89,14 @@ function ConvertTo-Icon
         $newBitmap = New-Object Drawing.Bitmap $inputBitmap, $size
         #endregion Load Icon
 
+        #region Icon Size bound check
+        if ($width -gt 255 -or $height -gt 255) {
+            $ratio = ($height, $width | Measure-Object -Maximum).Maximum / 255
+            $width /= $ratio
+            $height /= $ratio
+        }
+        #endregion Icon Size bound check
+
         #region Save Icon                     
         $memoryStream = New-Object System.IO.MemoryStream
         $newBitmap.Save($memoryStream, [System.Drawing.Imaging.ImageFormat]::Png)
