@@ -20,7 +20,7 @@ Now the menu items are added to Windows Explorer context menu.
 
 Figure 1: Default layout
 
-> The menu items are organized in the `default` layout. Other layouts such as `mini` and `flat` give different look and feel. To apply an aternative layout (like `mini`), simply run `install.ps1 mini`.
+> The menu items are organized in the `default` layout. Other layouts such as `mini` and `flat` give different look and feel. To apply an alternative layout (like `mini`), simply run `install.ps1 mini`.
 
 ![flat layout](flat.png)
 
