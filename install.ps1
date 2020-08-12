@@ -151,7 +151,8 @@ function GetProgramFilesFolder(
     [Parameter(Mandatory=$true)]
     [bool]$includePreview)
 {
-    $versionFolders = (Get-ChildItem "$Env:ProgramFiles\WindowsApps" | Where-Object {
+    $root = "$Env:ProgramFiles\WindowsApps"
+    $versionFolders = (Get-ChildItem $root | Where-Object {
             if ($includePreview) {
                 $_.Name -like "Microsoft.WindowsTerminal_*__*" -or
                 $_.Name -like "Microsoft.WindowsTerminalPreview_*__*"
@@ -174,12 +175,13 @@ function GetProgramFilesFolder(
         }
     }
 
-    if ($foundVersion -lt [version]"0.11") {
-        Write-Warning "The latest version found is less than 0.11, which is not tested. The install script might fail in certain way."
+    if ($null -eq $result) {
+        Write-Error "Failed to find Windows Terminal actual folder under $root. To install menu items for Windows Terminal Preview, run with ""-Prerelease"" switch Exit."
+        exit 1
     }
 
-    if ($null -eq $result) {
-        Write-Error "Failed to find Windows Terminal actual folder. The install script might fail in certain way."
+    if ($foundVersion -lt [version]"0.11") {
+        Write-Warning "The latest version found is less than 0.11, which is not tested. The install script might fail in certain way."
     }
 
     return $result
@@ -443,7 +445,7 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
 
 $executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
 if (-not (Test-Path $executable)) {
-    Write-Error "Windows Terminal not detected. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
+    Write-Error "Windows Terminal not detected at $executable. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
     exit 1
 }
 
