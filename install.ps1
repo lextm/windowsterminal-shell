@@ -159,7 +159,12 @@ function GetProgramFilesFolder(
     [Parameter(Mandatory=$true)]
     [bool]$includePreview)
 {
-    $root = "$Env:ProgramFiles\WindowsApps"
+    if (Test-Path "$env:USERPROFILE\scoop\apps\windows-terminal") {
+        $result = "$env:USERPROFILE\scoop\apps\windows-terminal\current"
+        return $result
+    } else {
+        $root = "$Env:ProgramFiles\WindowsApps"
+    }
     $versionFolders = (Get-ChildItem $root | Where-Object {
             if ($includePreview) {
                 $_.Name -like "Microsoft.WindowsTerminal_*__*" -or
@@ -220,9 +225,13 @@ function GetWindowsTerminalIcon(
 
 function GetActiveProfiles(
     [Parameter(Mandatory=$true)]
-    [bool]$isPreview)
+    [bool]$isPreview,
+    [bool]$isScoop)
 {
-    if ($isPreview) {
+    if ($isScoop) {
+        $file = "$env:LocalAppData\Microsoft\Windows Terminal\settings.json"
+    }
+    elseif ($isPreview) {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json"
     } else {
         $file = "$env:LocalAppData\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
@@ -252,7 +261,8 @@ function GetProfileIcon (
     [Parameter(Mandatory=$true)]
     [string]$defaultIcon,
     [Parameter(Mandatory=$true)]
-    [bool]$isPreview)
+    [bool]$isPreview,
+    [bool]$isScoop)
 {
     $guid = $profile.guid
     $name = $profile.name
@@ -357,7 +367,8 @@ function CreateProfileMenuItems(
     [Parameter(Mandatory=$true)]
     [string]$layout,
     [Parameter(Mandatory=$true)]
-    [bool]$isPreview)
+    [bool]$isPreview,
+    [bool]$isScoop)
 {
     $guid = $profile.guid
     $name = $profile.name
@@ -432,9 +443,10 @@ function CreateMenuItems(
     }
 
     $isPreview = $folder -like "*WindowsTerminalPreview*"
-    $profiles = GetActiveProfiles $isPreview
+    $isScoop = $folder -like "*scoop\apps\windows-terminal*"
+    $profiles = GetActiveProfiles $isPreview $isScoop
     foreach ($profile in $profiles) {
-        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout $isPreview
+        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout $isPreview $isScoop
     }
 }
 
@@ -451,7 +463,12 @@ if ($PSVersionTable.PSVersion.Major -lt 6) {
     exit 1
 }
 
-$executable = "$Env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+if (Test-Path "$env:USERPROFILE\scoop\apps\windows-terminal") {
+        $executable = "$env:USERPROFILE\scoop\apps\windows-terminal\current\wt.exe"
+} else {
+        $executable = "$env:LOCALAPPDATA\Microsoft\WindowsApps\wt.exe"
+}
+
 if (-not (Test-Path $executable)) {
     Write-Error "Windows Terminal not detected at $executable. Learn how to install it from https://github.com/microsoft/terminal (via Microsoft Store is recommended). Exit."
     exit 1
