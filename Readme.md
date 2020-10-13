@@ -36,11 +36,17 @@ Figure 3: Mini layout
 > To uninstall an alternative layout (like `mini`), run `uninstall.ps1 mini`.
 
 ## Notes
-The current release only supports Windows 10 machines (Windows Terminal restriction).
+The current release only supports Windows 10 machines (Windows Terminal restriction) and Windows Terminal installed via the store or .appx file.
 
-The scripts must be run as administrator.
+> If Windows Terminal is installed via Scoop, [scripts from another repo](https://github.com/grimux/windowsterminal-shell-scoop/tree/scoop-support) might help.
 
-`install.ps1` and `uninstall.ps1` only manipulate Windows Explorer settings for the context menu items, and do not write to Windows Terminal settings.
+The install script must be run as administrator.
+
+> That's because it pulls out data from Windows Terminal's installation folder, which is locked down by Windows 10.
+
+`install.ps1` and `uninstall.ps1` only manipulate current user's Windows Explorer settings for the context menu items, and do not write to Windows Terminal settings.
+
+> So different users on the same machine must install the context menu items separately, but possibly with different layouts.
 
 Downloading Windows Terminal icon from GitHub (in `install.ps1`) requires internet connection, but in general is just an optional step that won't be executed in most cases.
 
