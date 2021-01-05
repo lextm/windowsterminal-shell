@@ -44,6 +44,8 @@ The install script must be run as administrator.
 
 > That's because it pulls out data from Windows Terminal's installation folder, which is locked down by Windows 10.
 
+PowerShell 7 installed from Microsoft Store is not supported by the scripts (more details can be found in [#37](https://github.com/lextm/windowsterminal-shell/issues/37)).
+
 `install.ps1` and `uninstall.ps1` only manipulate current user's Windows Explorer settings for the context menu items, and do not write to Windows Terminal settings.
 
 > So different users on the same machine must install the context menu items separately, but possibly with different layouts.
