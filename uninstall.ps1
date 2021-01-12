@@ -11,6 +11,11 @@ param(
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
+if ((Get-Process -Id $pid).Path -like "*WindowsApps*") {
+    Write-Error "PowerShell installed via Microsoft Store is not supported. Learn other ways to install it from https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7 . Exit.";
+    exit 1
+}
+
 if ((Test-Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal") -and
     -not (Test-Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal")) {
     Write-Error "Please execute uninstall.old.ps1 to remove previous installation."
