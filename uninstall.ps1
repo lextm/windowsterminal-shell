@@ -9,6 +9,16 @@ param(
     [switch] $PreRelease
 )
 
+#Specify target user if different from account running the script, else comment this out
+$targetUser = "example.username"  # Optional - specify user. Otherwise, uncomment the below
+# $targetUser = $Env:UserName
+
+$targetUserObject = New-Object System.Security.Principal.NTAccount($targetUser)
+$targetUserSID = $targetUserObject.Translate([System.Security.Principal.SecurityIdentifier]).value
+
+$Env:LocalAppData = "C:\Users\$targetUser\AppData\Local"
+$Env:LOCALAPPDATA = $Env:LocalAppData
+
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
 if ((Get-Process -Id $pid).Path -like "*WindowsApps*") {
@@ -17,7 +27,7 @@ if ((Get-Process -Id $pid).Path -like "*WindowsApps*") {
 }
 
 if ((Test-Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\MenuTerminal") -and
-    -not (Test-Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal")) {
+    -not (Test-Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\shell\MenuTerminal")) {
     Write-Error "Please execute uninstall.old.ps1 to remove previous installation."
     exit 1
 }
@@ -30,12 +40,12 @@ if (Test-Path $localCache) {
 Write-Host "Use" $layout "layout."
 
 if ($layout -eq "Default") {
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdmin' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminalAdmin\shell' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\shell\MenuTerminal" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\shell\MenuTerminalAdmin" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdmin" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminalAdmin\shell" -Recurse -ErrorAction Ignore | Out-Null
 } elseif ($layout -eq "Flat") {
     $rootKey = 'HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell'
     foreach ($key in Get-ChildItem -Path "Registry::$rootKey") {
@@ -51,10 +61,10 @@ if ($layout -eq "Default") {
        }
     }
 } elseif ($layout -eq "Mini") {
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalMini' -Recurse -ErrorAction Ignore | Out-Null
-    Remove-Item -Path 'Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdminMini' -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\shell\MenuTerminalMini" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\shell\MenuTerminalAdminMini" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalMini" -Recurse -ErrorAction Ignore | Out-Null
+    Remove-Item -Path "Registry::HKEY_USERS\$targetUserSID\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdminMini" -Recurse -ErrorAction Ignore | Out-Null
 }
 
 Write-Host "Windows Terminal uninstalled from Windows Explorer context menu."
