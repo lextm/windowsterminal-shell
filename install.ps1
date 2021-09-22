@@ -11,8 +11,8 @@ param(
 )
 
 #Specify target user if different from account running the script, else comment this out
-$targetUser = "example.username"  # Optional - specify user. Otherwise, uncomment the below
-# $targetUser = $Env:UserName
+# $targetUser = "example.username"  # Optional - specify user. Otherwise, uncomment the below
+$targetUser = $Env:UserName
 
 $targetUserObject = New-Object System.Security.Principal.NTAccount($targetUser)
 $targetUserSID = $targetUserObject.Translate([System.Security.Principal.SecurityIdentifier]).value
