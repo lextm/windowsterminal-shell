@@ -19,7 +19,7 @@ $targetUserSID = $targetUserObject.Translate([System.Security.Principal.Security
 
 echo "Changing settings for user $targetUser with SID $targetUserSID"
 
-$Env:LocalAppData = "C:\Users\$targetUser\AppData\Local"
+$Env:LocalAppData = "$Env:HOMEDRIVE\Users\$targetUser\AppData\Local"
 $Env:LOCALAPPDATA = $Env:LocalAppData
 
 
