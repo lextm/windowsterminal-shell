@@ -16,7 +16,7 @@ $targetUser = "example.username"  # Optional - specify user. Otherwise, uncommen
 $targetUserObject = New-Object System.Security.Principal.NTAccount($targetUser)
 $targetUserSID = $targetUserObject.Translate([System.Security.Principal.SecurityIdentifier]).value
 
-$Env:LocalAppData = "C:\Users\$targetUser\AppData\Local"
+$Env:LocalAppData = "$Env:HOMEDRIVE\Users\$targetUser\AppData\Local"
 $Env:LOCALAPPDATA = $Env:LocalAppData
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
