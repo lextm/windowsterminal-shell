@@ -19,7 +19,9 @@ $targetUserSID = $targetUserObject.Translate([System.Security.Principal.Security
 
 echo "Changing settings for user $targetUser with SID $targetUserSID"
 
-$Env:LocalAppData = "$Env:HOMEDRIVE\Users\$targetUser\AppData\Local"
+$targetUserHomeDirectory = Get-ItemPropertyValue "Registry::HKEY_USERS\$targetUserSID\Volatile Environment" -Name USERPROFILE
+
+$Env:LocalAppData = "$targetUserHomeDirectory\$targetUser\AppData\Local"
 $Env:LOCALAPPDATA = $Env:LocalAppData
 
 
