@@ -9,13 +9,6 @@ param(
     [switch] $PreRelease
 )
 
-# self elevate to run with local administrator privileges
-if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    $arguments = "`"" + $MyInvocation.MyCommand.Definition + "`""
-    Start-Process pwsh -Verb runAs -ArgumentList $arguments
-    Break
-}
-
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
 if ((Get-Process -Id $pid).Path -like "*WindowsApps*") {

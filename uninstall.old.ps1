@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 #Requires -Version 6
 
 [CmdletBinding()]
@@ -9,6 +8,13 @@ param(
     [Parameter()]
     [switch] $PreRelease
 )
+
+# self elevate to run with local administrator privileges
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    $arguments = "`"" + $MyInvocation.MyCommand.Definition + "`""
+    Start-Process pwsh -Verb runAs -ArgumentList $arguments
+    Break
+}
 
 # Based on @nerdio01's version in https://github.com/microsoft/terminal/issues/1060
 
@@ -53,3 +59,5 @@ if ($layout -eq "Default") {
 }
 
 Write-Host "Windows Terminal uninstalled from Windows Explorer context menu."
+write-host "Press ENTER to exit..."
+Read-Host
