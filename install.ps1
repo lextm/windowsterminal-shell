@@ -9,7 +9,7 @@ param(
     [switch] $PreRelease
 )
 
-# self elevate to run as local administrator
+# self elevate to run with local administrator privileges
 if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
     $arguments = "`"" + $MyInvocation.MyCommand.Definition + "`""
     Start-Process pwsh -Verb runAs -ArgumentList $arguments
