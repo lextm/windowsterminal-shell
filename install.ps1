@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 #Requires -Version 6
 
 [CmdletBinding()]
@@ -9,6 +8,13 @@ param(
     [Parameter()]
     [switch] $PreRelease
 )
+
+# self elevate to run as local administrator
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    $arguments = "`"" + $MyInvocation.MyCommand.Definition + "`""
+    Start-Process pwsh -Verb runAs -ArgumentList $arguments
+    Break
+}
 
 function Generate-HelperScript(
         # The cache folder
@@ -467,3 +473,5 @@ Write-Host "Use $Layout layout."
 CreateMenuItems $executable $Layout $PreRelease
 
 Write-Host "Windows Terminal installed to Windows Explorer context menu."
+write-host "Press ENTER to exit..."
+Read-Host
