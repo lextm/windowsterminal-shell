@@ -357,7 +357,9 @@ function CreateProfileMenuItems(
     [Parameter(Mandatory=$true)]
     [string]$layout,
     [Parameter(Mandatory=$true)]
-    [bool]$isPreview)
+    [bool]$isPreview,
+    [Parameter(Mandatory=$true)]
+    [int]$order)
 {
     $guid = $profile.guid
     $name = $profile.name
@@ -366,15 +368,16 @@ function CreateProfileMenuItems(
     $profileIcon = GetProfileIcon $profile $folder $localCache $icon $isPreview
 
     if ($layout -eq "Default") {
-        $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell\$guid"
-        $rootKeyElevated = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminalAdmin\shell\$guid"
+        
+        $rootKey = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminal\shell\$order-$guid"
+        $rootKeyElevated = "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\ContextMenus\MenuTerminalAdmin\shell\$order-$guid"
         CreateMenuItem $rootKey $name $profileIcon $command $false
         CreateMenuItem $rootKeyElevated $name $profileIcon $elevated $true
     } elseif ($layout -eq "Flat") {
-        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false
-        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdmin_$guid" "$name here as administrator" $profileIcon $elevated $true   
-        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal_$guid" "$name here" $profileIcon $command $false
-        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdmin_$guid" "$name here as administrator" $profileIcon $elevated $true   
+        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminal_$order_$guid" "$name here" $profileIcon $command $false
+        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\shell\MenuTerminalAdmin_$order_$guid" "$name here as administrator" $profileIcon $elevated $true   
+        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminal_$order_$guid" "$name here" $profileIcon $command $false
+        CreateMenuItem "Registry::HKEY_CURRENT_USER\SOFTWARE\Classes\Directory\Background\shell\MenuTerminalAdmin_$order_$guid" "$name here as administrator" $profileIcon $elevated $true   
     }
 }
 
@@ -433,8 +436,10 @@ function CreateMenuItems(
 
     $isPreview = $folder -like "*WindowsTerminalPreview*"
     $profiles = GetActiveProfiles $isPreview
+    $counter = 0
     foreach ($profile in $profiles) {
-        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout $isPreview
+        CreateProfileMenuItems $profile $executable $folder $localCache $icon $layout $isPreview $counter 
+        $counter += 1
     }
 }
 
